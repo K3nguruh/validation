@@ -9,47 +9,29 @@ Diese Klasse erweitert die Funktionen der Klasse [`Validate`](https://github.com
 - Zentrale Fehlerverwaltung für eine konsistente Fehlerbehandlung
 - Unterstützung von Methodenverkettungen (Fluent Interface) für eine benutzerfreundliche Nutzung
 
-## Methoden:
-
-### `setValue($value)`
-
-Setzt den zu validierenden Wert.
-
-### `setArray($array, $name)`
-
-Setzt den Wert aus einem Array basierend auf dem angegebenen Namen.
-
-### `setAlias($name)`
-
-Setzt einen Alias-Namen für den Wert, der für bessere Nachvollziehbarkeit in den Fehlermeldungen verwendet wird.
-
-### `setRule($rule, $message)`
-
-Fügt eine Validierungsregel hinzu.
-
-### `validate()`
-
-Führt die Validierung des gesetzten Wertes durch.
-
-### `getErrors($field)`
-
-Gibt die aufgetretenen Validierungsfehler zurück.
-
-### `resetErrors()`
-
-Setzt die Fehler zurück.
-
 ## Systemvoraussetzungen:
 
-- PHP 7.4 oder höher
-- Composer (optional)
+- PHP 8.0 oder höher
+
+## Methoden:
+
+| Methode (public)           | Beschreibung                          | Parameter (Typ)                       | Standard |
+| -------------------------- | ------------------------------------- | ------------------------------------- | -------- |
+| `setValue($value)`         | Setzt den zu validierenden Wert.      | `$value (mixed)`                      | `null`   |
+| `setArray($array, $name)`  | Setzt den Wert aus einem Array.       | `$array (array)`, `$name (string)`    | `null`   |
+| `setAlias($name)`          | Setzt einen Alias-Namen für den Wert. | `$name (string)`                      | `null`   |
+| `setRule($rule, $message)` | Fügt eine Validierungsregel hinzu.    | `$rule (string)`, `$message (string)` | `null`   |
+| `validate($output)`        | Führt die Validierung durch.          | `$output (bool)`                      | `false`  |
+| `getErrors($control)`      | Gibt die aufgetretenen Fehler zurück. | `$control (string\|null)`             | `null`   |
+| `resetErrors()`            | Setzt die Fehler zurück.              | Keine                                 | --       |
 
 ## Installation:
 
-1. Klone das Repository:
-   ```sh
-   git clone https://github.com/K3nguruh/validation.git
-   ```
+Klone das Repository:
+
+```sh
+git clone https://github.com/K3nguruh/validation.git
+```
 
 ## Verwendung:
 
@@ -104,6 +86,29 @@ if ($errors) {
 }
 ```
 
+#### v1.0.1 und höher:
+
+```php
+<?php
+require_once "assets/validate.php";
+require_once "assets/validation.php";
+
+$validation = new Validation();
+
+$post = [
+  "id" => "100",
+];
+
+$validation
+  ->setValue($post["id"])
+  ->setRule("required", "Bitte eine ID eingeben.")
+  ->setRule("match||^[1-9]\d{3}$", "Bitte eine gültige ID eingeben.")
+  ->validate(true);
+
+// direkte Json Ausgabe - Keine weitere Code-Ausführung
+// {"status":"error","control":"id","message":"Bitte eine gültige ID eingeben."}
+```
+
 ### Beispiel mit Array-Werten:
 
 ```php
@@ -154,3 +159,35 @@ if ($errors) {
   echo "Alles in Ordnung.";
 }
 ```
+
+#### v1.0.1 und höher:
+
+```php
+<?php
+require_once "assets/validate.php";
+require_once "assets/validation.php";
+
+$validation = new Validation();
+
+$post = [
+  "id" => "100",
+];
+
+$validation
+  ->setArray($post, "id")
+  ->setRule("required", "Bitte eine ID eingeben.")
+  ->setRule("match||^[1-9]\d{3}$", "Bitte eine gültige ID eingeben.")
+  ->validate(true);
+
+// direkte Json Ausgabe - Keine weitere Code-Ausführung
+// {"status":"error","control":"id","message":"Bitte eine gültige ID eingeben."}
+```
+
+## Zusätzliche Informationen
+
+- **Lizenz**: MIT
+- **Issues/Bugs**: [GitHub Issues](https://github.com/K3nguruh/validation/issues)
+
+## Lizenz
+
+Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) für Details.
