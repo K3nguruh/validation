@@ -5,7 +5,7 @@
 ### Hinzugefügte Features:
 
 - Neuer Parameter `$output` zur `validate()` Methode, um die Ausgabe der ersten Fehlermeldung als JSON zu ermöglichen.
-- Neue private Methode `dieJsonError()` für die JSON-Ausgabe der Fehler.
+- Neue private Methode `showJsonError()` für die JSON-Ausgabe der Fehler.
 
 ### Geänderte Funktionen:
 
