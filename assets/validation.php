@@ -12,7 +12,7 @@
  * - Integration einer zentralen Fehlerverwaltung
  * - Unterstützung von Methodenverkettungen (Fluent Interface) für eine benutzerfreundliche Nutzung
  *
- * Methoden:
+ * Methoden (public):
  * - setValue:    Setzt den Wert, der validiert werden soll.
  * - setArray:    Setzt den Wert aus einem Array basierend auf dem angegebenen Namen.
  * - setAlias:    Setzt einen Alias für den aktuellen Wert.
@@ -21,10 +21,9 @@
  * - getErrors:   Gibt alle Fehlermeldungen zurück, die während der Validierung aufgetreten sind.
  * - resetErrors: Setzt die Fehler zurück.
  *
- *
  * Autor:   K3nguruh <https://github.com/K3nguruh>
- * Version: 1.0.0
- * Datum:   2025-01-19 17:32
+ * Version: 1.0.1
+ * Datum:   2025-02-14
  * Lizenz:  MIT-Lizenz
  */
 
@@ -34,7 +33,7 @@ class Validation extends Validate
 
   private $value; // Der zu validierende Wert
   private $alias; // Alias für den Wert, z. B. der Name des Feldes
-  private $rules; // Liste der Validierungsregeln
+  private $rules = []; // Liste der Validierungsregeln
   private $errors = []; // Fehlermeldungen während der Validierung
   private $count = 0; // Zähler für die Generierung von Alias-Namen
 
@@ -46,11 +45,11 @@ class Validation extends Validate
    * um eine eindeutige Identifikation während des Validierungsprozesses zu gewährleisten.
    *
    * @param mixed $value Der Wert, der validiert werden soll.
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    */
-  public function setValue($value)
+  public function setValue($value): self
   {
-    $this->value = trim($value);
+    $this->value = trim((string) $value);
     $this->alias = $this->count++;
     $this->rules = [];
 
@@ -65,11 +64,11 @@ class Validation extends Validate
    *
    * @param array $array Das Array, aus dem der Wert entnommen wird.
    * @param string $name Der Name des Werts im Array.
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    */
-  public function setArray($array, $name)
+  public function setArray(array $array, string $name): self
   {
-    $this->value = trim($array[$name]);
+    $this->value = trim((string) $array[$name]);
     $this->alias = $name;
     $this->rules = [];
 
@@ -83,9 +82,9 @@ class Validation extends Validate
    * um eine klarere Identifikation während des Validierungsprozesses zu ermöglichen.
    *
    * @param string $name Der Alias des aktuellen Werts.
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    */
-  public function setAlias($name)
+  public function setAlias(string $name): self
   {
     $this->alias = $name;
 
@@ -100,9 +99,9 @@ class Validation extends Validate
    *
    * @param string $rule Die Validierungsregel.
    * @param string $message Die Fehlermeldung im Falle eines Fehlers.
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    */
-  public function setRule($rule, $message)
+  public function setRule(string $rule, string $message): self
   {
     $this->rules[] = ["rule" => $rule, "message" => $message];
 
@@ -113,12 +112,14 @@ class Validation extends Validate
    * Validiert den festgelegten Wert anhand der definierten Regeln.
    *
    * Diese Methode prüft den Wert anhand aller festgelegten Regeln. Im Falle eines Fehlers wird die entsprechende
-   * Fehlermeldung gespeichert und die Validierung wird abgebrochen.
+   * Fehlermeldung gespeichert und die Validierung wird abgebrochen. Optional kann die Fehlermeldung als JSON
+   * ausgegeben werden.
    *
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @param bool $output Falls true, wird die Fehlermeldung als JSON ausgegeben und das Skript beendet.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    * @throws InvalidArgumentException Wenn eine ungültige Validierungsregel gefunden wird.
    */
-  public function validate()
+  public function validate(bool $output = false): self
   {
     foreach ($this->rules as $rule) {
       $args = explode(self::DEFAULT_SEPARATOR, $rule["rule"]);
@@ -134,6 +135,10 @@ class Validation extends Validate
       }
     }
 
+    if ($output && $this->errors) {
+      $this->showJsonError();
+    }
+
     return $this;
   }
 
@@ -143,13 +148,13 @@ class Validation extends Validate
    * Diese Methode gibt die Fehlermeldungen zurück, die bei der Validierung aufgetreten sind.
    * Optional kann ein spezifisches Feld angegeben werden, um nur die Fehler für dieses Feld zu erhalten.
    *
-   * @param string|null $field Der Name des Feldes, für das die Fehler zurückgegeben werden sollen.
+   * @param string|null $control Der Name des Feldes, für das die Fehler zurückgegeben werden sollen.
    * @return array Die Fehlermeldungen.
    */
-  public function getErrors($field = null)
+  public function getErrors(?string $control = null): array
   {
-    if ($field !== null) {
-      return $this->errors[$field] ?? [];
+    if ($control !== null) {
+      return $this->errors[$control] ?? [];
     }
 
     return $this->errors;
@@ -160,11 +165,28 @@ class Validation extends Validate
    *
    * Diese Methode leert das Fehler-Array, sodass nachfolgende Validierungen ohne vorherige Fehler ausgeführt werden können.
    *
-   * @return $this Das Validation-Objekt für eine einfache Methodenverkettung.
+   * @return self Das Validation-Objekt für eine einfache Methodenverkettung.
    */
-  public function resetErrors()
+  public function resetErrors(): self
   {
     $this->errors = [];
     return $this;
+  }
+
+  /**
+   * Gibt die Fehlermeldung als JSON aus.
+   *
+   * Diese Methode gibt eine JSON-Antwort mit dem Status "error", dem betroffenen Feld (control)
+   * und der zugehörigen Fehlermeldung (message) aus. Anschließend wird die Ausführung des Skripts beendet.
+   *
+   * @return void
+   */
+  private function showJsonError(): void
+  {
+    $control = key($this->errors);
+    $message = $this->errors[$control];
+
+    header("Content-Type: application/json");
+    exit(json_encode(["status" => "error", "control" => $control, "message" => $message]));
   }
 }
